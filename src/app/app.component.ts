@@ -9,5 +9,5 @@ import { Component } from '@angular/core';
   styles: [],
 })
 export class AppComponent {
-  title = 'egghead-angular';
+  title = 'Habit-angular';
 }

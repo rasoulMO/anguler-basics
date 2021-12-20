@@ -1,17 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { Habit } from '../habit';
+import { HabitService } from '../habit.service';
 
 @Component({
   selector: 'app-habit-list',
   template: `
     <h2>Habit List</h2>
-    <form [formGroup]="habitForm" (ngSubmit)="onSubmit(habitForm.value)">
-      <input type="text" placeholder="Add hait" formControlName="title" />
-      <button type="submit">Add</button>
-    </form>
+    <app-habit-form (addHabit)="onAddHabit($event)"></app-habit-form>
     <ul>
       <app-habit-item
-        *ngFor="let habit of habits"
+        *ngFor="let habit of habits | async"
         [habit]="habit"
       ></app-habit-item>
     </ul>
@@ -19,43 +20,20 @@ import { FormBuilder } from '@angular/forms';
   styles: [],
 })
 export class HabitListComponent implements OnInit {
-  habitForm: any;
-  habits = [
-    {
-      id: 1,
-      title: 'Read a book',
-    },
-    {
-      id: 2,
-      title: 'Read 1 a book',
-    },
-    {
-      id: 3,
-      title: 'Read 2 a book',
-    },
-    {
-      id: 4,
-      title: 'Read 3 a book',
-    },
-    {
-      id: 5,
-      title: 'Read 4 a book',
-    },
-  ];
+  habits: Observable<Habit[]> | any;
 
-  constructor(private formBuilder: FormBuilder) {
-    this.habitForm = this.formBuilder.group({
-      title: '',
-    });
+  constructor(private habitService: HabitService) { }
+
+  onAddHabit(newHabit: any) {
+    this.habitService.addHabit(newHabit);
   }
 
-  onSubmit(newHabit: any) {
-    const id = this.habits.length + 1;
-    newHabit.id = id;
-    this.habits.push(newHabit);
-    this.habitForm.reset();
-  }
   ngOnInit(): void {
-    throw new Error('Method not implemented.');
+    this.habits = this.habitService.getHabits().pipe(map(habits => {
+      return habits.map(habit => {
+        habit.streak = habit.count > 4 ? true : false;
+        return habit;
+      });
+    }));
   }
 }
